@@ -29,7 +29,7 @@ async function main() {
   const lustreFunctions = await Promise.all(
     iconSets.map(([name, weight, svgString]) =>
       generateLustreIcon(name, weight, svgString)
-    ),
+    )
   );
 
   const template = Deno.readTextFileSync(TEMPLATE_PATH);
@@ -67,16 +67,9 @@ function loadWeights() {
       for (const entry of weightDir) {
         if (entry.isFile) {
           readFile(
-            path.join(
-              ASSETS_PATH,
-              weight.name,
-              entry.name,
-            ),
-            path.basename(entry.name, ".svg").replaceAll(
-              "-",
-              "_",
-            ),
-            weight.name,
+            path.join(ASSETS_PATH, weight.name, entry.name),
+            path.basename(entry.name, ".svg").replaceAll("-", "_"),
+            weight.name
           );
         }
       }
@@ -84,9 +77,7 @@ function loadWeights() {
   }
 }
 
-function generateLustreSvg(
-  node: Awaited<ReturnType<typeof parse>>,
-): string {
+function generateLustreSvg(node: Awaited<ReturnType<typeof parse>>): string {
   const nodeType = snakeCase(node.name);
   const attributes = Object.keys(node.attributes).map((key) => {
     return `attr.attribute("${key}", "${node.attributes[key]}")`;
@@ -120,9 +111,10 @@ function checkFiles(icon: Record<string, string>) {
 async function generateLustreIcon(
   name: string,
   weight: string,
-  svgString: string,
+  svgString: string
 ): Promise<string> {
-  const children = (await parse(svgString)).children.map(generateLustreSvg)
+  const children = (await parse(svgString)).children
+    .map(generateLustreSvg)
     .join(", ");
 
   return `      
@@ -138,7 +130,7 @@ pub fn ${name}_${weight} (attrs: List(Attribute(msg))) -> Element(msg) {
     ..attrs
   ]
 
-  let combined_attributes = list.concat([base_attributes, attrs])
+  let combined_attributes = list.flatten([base_attributes, attrs])
 
   svg.svg(combined_attributes, [${children}])
 }
